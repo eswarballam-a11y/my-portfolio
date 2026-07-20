@@ -109,19 +109,74 @@
       color: var(--cyan);
     }
 
+    /* Spotlight Nav Styles */
     nav.links {
+      position: relative;
       display: flex;
-      gap: 28px;
+      align-items: center;
+      background: rgba(30, 41, 59, 0.4);
+      border: 1px solid rgba(51, 65, 85, 0.5);
+      border-radius: 100px;
+      padding: 0 4px;
+      height: 44px;
+      overflow: hidden;
+      --spotlight-x: 0px;
+      --ambience-x: 0px;
+    }
+
+    ul.nav-list {
+      display: flex;
+      gap: 0px;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      position: relative;
+      z-index: 10;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 16px;
+      height: 100%;
       font-size: 0.92rem;
+      font-weight: 500;
       color: var(--muted);
-    }
-
-    nav.links a {
       transition: color .2s ease;
+      border-radius: 100px;
     }
 
-    nav.links a:hover {
+    .nav-item:hover,
+    .nav-item.active {
       color: var(--text);
+    }
+
+    /* 1. Moving Spotlight (Follows Mouse) */
+    .spotlight-hover {
+      pointer-events: none;
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      background: radial-gradient(120px circle at var(--spotlight-x) 100%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+    }
+
+    /* 2. Active State Ambience */
+    .spotlight-active {
+      pointer-events: none;
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      z-index: 2;
+      background: radial-gradient(60px circle at var(--ambience-x) 0%, rgba(6, 182, 212, 1) 0%, transparent 100%);
     }
 
     .nav-toggle {
@@ -129,18 +184,37 @@
     }
 
     @media (max-width:720px) {
+
+      .spotlight-hover,
+      .spotlight-active {
+        display: none;
+      }
+
       nav.links {
         position: fixed;
         top: 60px;
         right: 0;
         left: 0;
+        height: auto;
+        border-radius: 0;
         background: rgba(11, 17, 32, 0.97);
         flex-direction: column;
         padding: 20px 24px;
-        gap: 18px;
         border-bottom: 1px solid var(--border);
         transform: translateY(-130%);
         transition: transform .25s ease;
+      }
+
+      ul.nav-list {
+        flex-direction: column;
+        width: 100%;
+        gap: 8px;
+      }
+
+      .nav-item {
+        padding: 12px 16px;
+        width: 100%;
+        justify-content: flex-start;
       }
 
       nav.links.open {
@@ -197,6 +271,7 @@
         flex-direction: column;
         align-items: flex-start;
       }
+
       .hero-image {
         margin-top: 40px;
       }
@@ -310,16 +385,24 @@
     .btn-text {
       position: relative;
       z-index: 10;
-      -webkit-mask-image: linear-gradient(-75deg, rgba(255,255,255,1) 20%, rgba(255,255,255,0.4) 30%, rgba(255,255,255,1) 40%);
-      mask-image: linear-gradient(-75deg, rgba(255,255,255,1) 20%, rgba(255,255,255,0.4) 30%, rgba(255,255,255,1) 40%);
+      -webkit-mask-image: linear-gradient(-75deg, rgba(255, 255, 255, 1) 20%, rgba(255, 255, 255, 0.4) 30%, rgba(255, 255, 255, 1) 40%);
+      mask-image: linear-gradient(-75deg, rgba(255, 255, 255, 1) 20%, rgba(255, 255, 255, 0.4) 30%, rgba(255, 255, 255, 1) 40%);
       -webkit-mask-size: 200% 100%;
       mask-size: 200% 100%;
       animation: btn-shine-text 3s linear infinite;
     }
 
     @keyframes btn-shine-text {
-      0% { -webkit-mask-position: 150% 0; mask-position: 150% 0; }
-      40%, 100% { -webkit-mask-position: -50% 0; mask-position: -50% 0; }
+      0% {
+        -webkit-mask-position: 150% 0;
+        mask-position: 150% 0;
+      }
+
+      40%,
+      100% {
+        -webkit-mask-position: -50% 0;
+        mask-position: -50% 0;
+      }
     }
 
     .btn::before {
@@ -344,10 +427,24 @@
     }
 
     @keyframes btn-shine-border {
-      0% { background-position: 150% 0; opacity: 0; }
-      10% { opacity: 1; }
-      30% { opacity: 1; }
-      40%, 100% { background-position: -50% 0; opacity: 0; }
+      0% {
+        background-position: 150% 0;
+        opacity: 0;
+      }
+
+      10% {
+        opacity: 1;
+      }
+
+      30% {
+        opacity: 1;
+      }
+
+      40%,
+      100% {
+        background-position: -50% 0;
+        opacity: 0;
+      }
     }
 
     /* signature: convergence graphic — a loss curve that resolves into a bracket */
@@ -762,22 +859,276 @@
       border-radius: 5px;
       font-size: 0.85em;
     }
+
+    /* ---------- MORPH TEXT ---------- */
+    .morph-text-root {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      /* Left aligned for hero */
+      margin-bottom: 1rem;
+    }
+
+    .morph-text-container {
+      position: relative;
+      user-select: none;
+      font-size: clamp(3rem, 10vw, 6rem);
+      font-weight: 700;
+      filter: url(#morph-threshold);
+      font-family: var(--head);
+      color: var(--text);
+      margin-left: -0.05em;
+      /* Optical alignment */
+    }
+
+    .morph-word-rotator {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      height: 1.2em;
+      min-width: 10ch;
+      /* Adjusted from 14ch to fit words */
+    }
+
+    .morph-word {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      transform: translateY(-50%);
+      opacity: 0;
+      white-space: nowrap;
+      animation-name: morph-word-rotate;
+      animation-timing-function: ease-in-out;
+      animation-iteration-count: infinite;
+      animation-fill-mode: both;
+    }
+
+    .morph-word.grad {
+      background: linear-gradient(100deg, var(--cyan), var(--purple));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .morph-word:nth-child(1) {
+      animation-duration: 9s;
+      animation-delay: 0s;
+    }
+
+    .morph-word:nth-child(2) {
+      animation-duration: 9s;
+      animation-delay: 3s;
+    }
+
+    .morph-word:nth-child(3) {
+      animation-duration: 9s;
+      animation-delay: 6s;
+    }
+
+    @keyframes morph-word-rotate {
+      0% {
+        opacity: 0;
+        filter: blur(20px);
+        transform: translateY(-50%) scale(0.8);
+      }
+
+      5% {
+        opacity: 0.5;
+        filter: blur(10px);
+      }
+
+      15%,
+      35% {
+        opacity: 1;
+        filter: blur(0px);
+        transform: translateY(-50%) scale(1);
+      }
+
+      45% {
+        opacity: 0.5;
+        filter: blur(10px);
+      }
+
+      50%,
+      100% {
+        opacity: 0;
+        filter: blur(20px);
+        transform: translateY(-50%) scale(1.2);
+      }
+    }
+
+    /* ---------- GLOBAL MOUSE GLOW ---------- */
+    .page-glow {
+      pointer-events: none;
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      opacity: 0;
+      background: radial-gradient(800px circle at var(--mouse-x, 0px) var(--mouse-y, 0px), rgba(6, 182, 212, 0.15), transparent 100%);
+      transition: opacity 0.5s ease;
+    }
+
+    /* ---------- SOCIAL FLIP BUTTONS ---------- */
+    .social-flip-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      padding: 1.25rem 2rem;
+      position: relative;
+      background: var(--surface);
+      border-radius: 16px;
+      margin: 2rem auto;
+      width: max-content;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      border: 1px solid var(--border);
+    }
+
+    .social-flip-container .border-line {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      height: 1.5px;
+      background: linear-gradient(to right, transparent, var(--cyan), transparent);
+      animation: borderMove 3s linear infinite;
+      opacity: 0.8;
+    }
+    .social-flip-container .border-line.top { top: 0; }
+    .social-flip-container .border-line.bottom {
+      bottom: 0;
+      background: linear-gradient(to left, transparent, var(--purple), transparent);
+    }
+    
+    @keyframes borderMove {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+
+    .flip-btn {
+      position: relative;
+      width: 44px;
+      height: 44px;
+      cursor: pointer;
+      perspective: 1000px;
+      text-decoration: none;
+    }
+
+    /* Tooltip */
+    .flip-btn::after {
+      content: attr(data-label);
+      position: absolute;
+      bottom: calc(100% + 10px);
+      left: 50%;
+      transform: translateX(-50%) translateY(10px) scale(0.8);
+      opacity: 0;
+      pointer-events: none;
+      background: var(--text);
+      color: var(--bg);
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      white-space: nowrap;
+      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      z-index: 50;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+    
+    .flip-btn::before {
+      content: "";
+      position: absolute;
+      bottom: calc(100% + 6px);
+      left: 50%;
+      transform: translateX(-50%) rotate(45deg) translateY(10px) scale(0.8);
+      width: 8px;
+      height: 8px;
+      background: var(--text);
+      opacity: 0;
+      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      z-index: 51;
+    }
+
+    .social-flip-container:hover .flip-btn:hover::after,
+    .social-flip-container:hover .flip-btn:hover::before {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0) scale(1);
+    }
+    .social-flip-container:hover .flip-btn:hover::before {
+      transform: translateX(-50%) rotate(45deg) translateY(0) scale(1);
+    }
+
+    .flip-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transform-style: preserve-3d;
+      transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .flip-btn:nth-child(2) .flip-inner { transition-delay: 0.0s; }
+    .flip-btn:nth-child(3) .flip-inner { transition-delay: 0.08s; }
+    .flip-btn:nth-child(4) .flip-inner { transition-delay: 0.16s; }
+    .flip-btn:nth-child(5) .flip-inner { transition-delay: 0.24s; }
+    .flip-btn:nth-child(6) .flip-inner { transition-delay: 0.32s; }
+    .flip-btn:nth-child(7) .flip-inner { transition-delay: 0.40s; }
+    .flip-btn:nth-child(8) .flip-inner { transition-delay: 0.48s; }
+
+    .social-flip-container:hover .flip-inner {
+      transform: rotateY(180deg);
+    }
+
+    .flip-front, .flip-back {
+      position: absolute;
+      inset: 0;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backface-visibility: hidden;
+    }
+
+    .flip-front {
+      background: var(--surface-2);
+      color: var(--text);
+      font-size: 1.2rem;
+      font-family: var(--head);
+      font-weight: 700;
+      border: 1px solid var(--border);
+    }
+
+    .flip-back {
+      background: var(--text);
+      color: var(--bg);
+      transform: rotateY(180deg);
+    }
+    .flip-back svg {
+      width: 20px;
+      height: 20px;
+    }
   </style>
 </head>
 
 <body>
+  <div class="page-glow"></div>
+
 
   <header class="nav">
     <div class="wrap nav-inner">
       <div class="logo">Bogeeswar <span>Ballam</span></div>
       <button class="nav-toggle" aria-label="Toggle navigation"
         onclick="document.querySelector('nav.links').classList.toggle('open')">☰</button>
-      <nav class="links">
-        <a href="#skills">Skills</a>
-        <a href="#live">Live Code</a>
-        <a href="#projects">Projects</a>
-        <a href="#education">Education</a>
-        <a href="#contact">Contact</a>
+      <nav class="links" id="main-nav">
+        <ul class="nav-list">
+          <li><a href="#skills" data-index="0" class="nav-item active">Skills</a></li>
+          <li><a href="#live" data-index="1" class="nav-item">Live Code</a></li>
+          <li><a href="#projects" data-index="2" class="nav-item">Projects</a></li>
+          <li><a href="#education" data-index="3" class="nav-item">Education</a></li>
+          <li><a href="#contact" data-index="4" class="nav-item">Contact</a></li>
+        </ul>
+        <div class="spotlight-hover"></div>
+        <div class="spotlight-active"></div>
       </nav>
     </div>
   </header>
@@ -788,36 +1139,58 @@
       <div class="wrap hero-inner">
         <div class="hero-content">
           <span class="eyebrow"><span class="dot"></span> Open to AI Full-Stack roles</span>
-        <h1 class="headline">Training complex models. <span class="grad">Building scalable apps.</span></h1>
-        <p class="bio">
-          I'm an AI &amp; Machine Learning engineering student who bridges data science and functional software.
-          I combine a foundation in statistical algorithms &mdash; classification, clustering, optimization &mdash;
-          with the full-stack skills to ship that intelligence as real, user-facing applications.
-        </p>
-        <div class="cta-row">
-          <a class="btn btn-primary" href="#projects"><span class="btn-text">View my work</span></a>
-          <a class="btn btn-ghost" href="#live"><span class="btn-text">See live GitHub sync</span></a>
-        </div>
 
-        <div class="signature">
-          <div class="label"><span>training_loss.log</span><span>epoch 40 / converged</span></div>
-          <svg viewBox="0 0 600 140" preserveAspectRatio="none" role="img"
-            aria-label="A loss curve converging into a code bracket, representing model training resolving into deployed software.">
-            <defs>
-              <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stop-color="#8B5CF6" />
-                <stop offset="100%" stop-color="#06B6D4" />
-              </linearGradient>
-            </defs>
-            <polyline points="0,20 60,32 120,50 180,58 240,70 300,80 360,92 420,100 480,106 540,110 600,112" fill="none"
-              stroke="url(#lineGrad)" stroke-width="2.5" stroke-linecap="round" />
-            <g stroke="#334155" stroke-width="1">
-              <line x1="0" y1="115" x2="600" y2="115" />
-            </g>
-            <text x="560" y="132" font-family="JetBrains Mono, monospace" font-size="12" fill="#06B6D4">{ deployed
-              }</text>
-          </svg>
-        </div>
+          <div class="morph-text-root">
+            <svg aria-hidden="true" focusable="false"
+              style="position: absolute; width: 0; height: 0; pointer-events: none;">
+              <defs>
+                <filter id="morph-threshold">
+                  <feColorMatrix in="SourceGraphic" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 25 -9"
+                    result="goo" />
+                  <feComposite in="SourceGraphic" in2="goo" operator="atop" />
+                </filter>
+              </defs>
+            </svg>
+            <div class="morph-text-container">
+              <div class="morph-word-rotator">
+                <span class="morph-word grad">CREATE</span>
+                <span class="morph-word grad">DESIGN</span>
+                <span class="morph-word grad">DEVELOP</span>
+              </div>
+            </div>
+          </div>
+
+          <h1 class="headline">Training complex models. <br><span
+              style="font-size: 0.75em; color: var(--muted); font-weight: 500;">Building scalable apps.</span></h1>
+          <p class="bio">
+            I'm an AI &amp; Machine Learning engineering student who bridges data science and functional software.
+            I combine a foundation in statistical algorithms &mdash; classification, clustering, optimization &mdash;
+            with the full-stack skills to ship that intelligence as real, user-facing applications.
+          </p>
+          <div class="cta-row">
+            <a class="btn btn-primary" href="#projects"><span class="btn-text">View my work</span></a>
+            <a class="btn btn-ghost" href="#live"><span class="btn-text">See live GitHub sync</span></a>
+          </div>
+
+          <div class="signature">
+            <div class="label"><span>training_loss.log</span><span>epoch 40 / converged</span></div>
+            <svg viewBox="0 0 600 140" preserveAspectRatio="none" role="img"
+              aria-label="A loss curve converging into a code bracket, representing model training resolving into deployed software.">
+              <defs>
+                <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stop-color="#8B5CF6" />
+                  <stop offset="100%" stop-color="#06B6D4" />
+                </linearGradient>
+              </defs>
+              <polyline points="0,20 60,32 120,50 180,58 240,70 300,80 360,92 420,100 480,106 540,110 600,112"
+                fill="none" stroke="url(#lineGrad)" stroke-width="2.5" stroke-linecap="round" />
+              <g stroke="#334155" stroke-width="1">
+                <line x1="0" y1="115" x2="600" y2="115" />
+              </g>
+              <text x="560" y="132" font-family="JetBrains Mono, monospace" font-size="12" fill="#06B6D4">{ deployed
+                }</text>
+            </svg>
+          </div>
         </div>
         <div class="hero-image">
           <img src="assets/profile_pic.jpg" alt="Bogeeswar Ballam" />
@@ -899,7 +1272,8 @@
         </div>
 
         <div class="project">
-          <div class="project-visual"><img src="assets/project_one.png" alt="Cloud Removal GAN" style="width: 100%; height: 100%; object-fit: cover;"></div>
+          <div class="project-visual"><img src="assets/project_one.png" alt="Cloud Removal GAN"
+              style="width: 100%; height: 100%; object-fit: cover;"></div>
           <div>
             <h3 class="project-name">Cloud Removal GAN</h3>
             <ul class="star-row">
@@ -918,7 +1292,8 @@
         </div>
 
         <div class="project reverse">
-          <div class="project-visual"><img src="assets/project_two.png" alt="Student Management System" style="width: 100%; height: 100%; object-fit: cover;"></div>
+          <div class="project-visual"><img src="assets/project_two.png" alt="Student Management System"
+              style="width: 100%; height: 100%; object-fit: cover;"></div>
           <div>
             <h3 class="project-name">Student Management System</h3>
             <ul class="star-row">
@@ -937,7 +1312,8 @@
         </div>
 
         <div class="project">
-          <div class="project-visual"><img src="assets/project_three.jpg" alt="Hackathon Design Thinking Sprint" style="width: 100%; height: 100%; object-fit: cover;"></div>
+          <div class="project-visual"><img src="assets/project_three.jpg" alt="Hackathon Design Thinking Sprint"
+              style="width: 100%; height: 100%; object-fit: cover;"></div>
           <div>
             <h3 class="project-name">Hackathon &mdash; Design Thinking Sprint</h3>
             <ul class="star-row">
@@ -950,6 +1326,28 @@
             </ul>
             <div class="tags"><span class="tag">Design Thinking</span><span class="tag">Business Modeling</span><span
                 class="tag">Strategy</span></div>
+          </div>
+        </div>
+
+        <div class="project reverse">
+          <div class="project-visual">
+            <img src="assets/portfolio_screenshot.png" alt="Developer Portfolio"
+              style="width: 100%; height: 100%; object-fit: cover;">
+          </div>
+          <div>
+            <h3 class="project-name">Developer Portfolio</h3>
+            <ul class="star-row">
+              <li><b>Challenge:</b> Building a modern, high-performance portfolio that stands out visually without
+                relying on heavy frontend frameworks.</li>
+              <li><b>Build:</b> Engineered a fully responsive, vanilla HTML/CSS/JS architecture incorporating advanced
+                UI patterns, custom mouse-following glow effects, and dynamic GitHub API synchronization.</li>
+              <li><b>Impact:</b> Created a lightning-fast, highly interactive personal brand platform that perfectly
+                balances striking aesthetic design with optimal web performance.</li>
+            </ul>
+            <div class="tags"><span class="tag">Vanilla JS</span><span class="tag">CSS Animations</span><span
+                class="tag">Anime.js</span></div>
+            <a class="repo-link" href="https://github.com/eswarballam-a11y/my-portfolio" target="_blank"
+              rel="noopener">View repository →</a>
           </div>
         </div>
       </div>
@@ -989,34 +1387,88 @@
         I'm currently open to roles that use both my machine learning background and
         my full-stack development skills. Let's connect.
       </p>
-      <div class="contact-links">
-        <a class="contact-link" href="https://github.com/eswarballam-a11y" target="_blank" rel="noopener">
-          <svg class="ic" viewBox="0 0 24 24" fill="currentColor">
-            <path
-              d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.27-.01-1.17-.02-2.12-3.2.7-3.88-1.36-3.88-1.36-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.71 1.26 3.37.96.1-.75.4-1.26.73-1.55-2.56-.29-5.25-1.28-5.25-5.71 0-1.26.45-2.29 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 0 1 5.79 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.8 1.19 1.83 1.19 3.09 0 4.44-2.7 5.42-5.27 5.7.42.36.78 1.08.78 2.17 0 1.57-.01 2.83-.01 3.22 0 .31.21.68.8.56A10.51 10.51 0 0 0 23.5 12C23.5 5.73 18.27.5 12 .5Z" />
-          </svg>
-          GitHub
+      <div class="contact-links social-flip-container">
+        <div class="border-lines" style="position: absolute; inset: -1px; overflow: hidden; border-radius: 16px; pointer-events: none;">
+          <div class="border-line top"></div>
+          <div class="border-line bottom"></div>
+        </div>
+        
+        <a class="flip-btn" href="https://github.com/eswarballam-a11y" target="_blank" rel="noopener" data-label="GitHub">
+          <div class="flip-inner">
+            <div class="flip-front">C</div>
+            <div class="flip-back">
+              <svg class="ic" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.27-.01-1.17-.02-2.12-3.2.7-3.88-1.36-3.88-1.36-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.71 1.26 3.37.96.1-.75.4-1.26.73-1.55-2.56-.29-5.25-1.28-5.25-5.71 0-1.26.45-2.29 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 0 1 5.79 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.8 1.19 1.83 1.19 3.09 0 4.44-2.7 5.42-5.27 5.7.42.36.78 1.08.78 2.17 0 1.57-.01 2.83-.01 3.22 0 .31.21.68.8.56A10.51 10.51 0 0 0 23.5 12C23.5 5.73 18.27.5 12 .5Z" />
+              </svg>
+            </div>
+          </div>
         </a>
-        <a class="contact-link" href="https://www.linkedin.com/in/bogeeswar-ballam-744466375" target="_blank"
-          rel="noopener">
-          <svg class="ic" viewBox="0 0 24 24" fill="currentColor">
-            <path
-              d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.86 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.38-1.85 3.61 0 4.28 2.38 4.28 5.47v6.27ZM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12ZM7.12 20.45H3.56V9h3.56v11.45Z" />
-          </svg>
-          LinkedIn
+
+        <a class="flip-btn" href="https://x.com/WHITEDEVILESWAR" target="_blank" rel="noopener" data-label="X (Twitter)">
+          <div class="flip-inner">
+            <div class="flip-front">O</div>
+            <div class="flip-back">
+              <svg class="ic" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z" />
+              </svg>
+            </div>
+          </div>
         </a>
-        <a class="contact-link" href="mailto:eswarballam@gmail.com">
-          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-            <path d="M3 6h18v12H3z" />
-            <path d="m3 7 9 6 9-6" />
-          </svg>
-          Email
+
+        <a class="flip-btn" href="https://www.linkedin.com/in/bogeeswar-ballam-744466375" target="_blank" rel="noopener" data-label="LinkedIn">
+          <div class="flip-inner">
+            <div class="flip-front">N</div>
+            <div class="flip-back">
+              <svg class="ic" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.86 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.38-1.85 3.61 0 4.28 2.38 4.28 5.47v6.27ZM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12ZM7.12 20.45H3.56V9h3.56v11.45Z" />
+              </svg>
+            </div>
+          </div>
         </a>
-        <a class="contact-link" href="https://wa.me/919346269570" target="_blank" rel="noopener">
-          <svg class="ic" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12.01 2.01c-5.5 0-9.98 4.47-9.98 9.98 0 1.95.56 3.77 1.5 5.3L2 22l4.85-1.52c1.47.88 3.19 1.39 5.04 1.39 5.51 0 9.99-4.47 9.99-9.98s-4.48-9.98-9.99-9.98zm0 18c-1.58 0-3.07-.4-4.36-1.11l-.31-.18-3.18 1 .84-3.11-.2-.33c-.76-1.22-1.18-2.67-1.18-4.17 0-4.43 3.6-8.03 8.04-8.03s8.04 3.6 8.04 8.03-3.6 8.03-8.04 8.03zm4.4-6.02c-.24-.12-1.42-.71-1.64-.78-.22-.08-.38-.12-.54.12-.16.24-.62.79-.76.95-.14.16-.28.18-.52.06-.24-.12-1.02-.38-1.94-1.2-.72-.64-1.2-1.43-1.34-1.67-.14-.24-.02-.38.1-.5.1-.1.24-.28.36-.42.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.12-.54-1.3-.74-1.78-.19-.47-.38-.4-.54-.41-.14 0-.3 0-.46 0-.16 0-.42.06-.64.3-.22.24-.84.82-.84 2s.86 2.32.98 2.48c.12.16 1.68 2.58 4.08 3.56.57.24 1.02.38 1.37.49.57.18 1.09.16 1.5.09.46-.07 1.42-.58 1.62-1.14.2-.56.2-1.04.14-1.14-.06-.1-.22-.16-.46-.28z"/>
-          </svg>
-          WhatsApp
+
+        <a class="flip-btn" href="https://www.instagram.com/mr.whitedevil_eswar?igsh=cmNicTNicWI3czd0" target="_blank" rel="noopener" data-label="Instagram">
+          <div class="flip-inner">
+            <div class="flip-front">T</div>
+            <div class="flip-back">
+              <svg class="ic" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M7 2C4.239 2 2 4.239 2 7v10c0 2.761 2.239 5 5 5h10c2.761 0 5-2.239 5-5V7c0-2.761-2.239-5-5-5H7zm0 2h10c1.657 0 3 1.343 3 3v10c0 1.657-1.343 3-3 3H7c-1.657 0-3-1.343-3-3V7c0-1.657 1.343-3 3-3zm5 3.5A4.5 4.5 0 1 0 12 16.5 4.5 4.5 0 0 0 12 7.5zm0 2A2.5 2.5 0 1 1 12 14.5 2.5 2.5 0 0 1 12 9.5zm4.25-2.75a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5z" />
+              </svg>
+            </div>
+          </div>
+        </a>
+
+        <a class="flip-btn" href="#contact" data-label="Facebook (Coming Soon)">
+          <div class="flip-inner">
+            <div class="flip-front">A</div>
+            <div class="flip-back">
+              <svg class="ic" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H7.5v-3H10V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c5.05-.5 9-4.76 9-9.95z" />
+              </svg>
+            </div>
+          </div>
+        </a>
+
+        <a class="flip-btn" href="mailto:eswarballam@gmail.com" data-label="Email">
+          <div class="flip-inner">
+            <div class="flip-front">C</div>
+            <div class="flip-back">
+              <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M3 6h18v12H3z" />
+                <path d="m3 7 9 6 9-6" />
+              </svg>
+            </div>
+          </div>
+        </a>
+
+        <a class="flip-btn" href="https://wa.me/919346269570" target="_blank" rel="noopener" data-label="WhatsApp">
+          <div class="flip-inner">
+            <div class="flip-front">T</div>
+            <div class="flip-back">
+              <svg class="ic" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12.01 2.01c-5.5 0-9.98 4.47-9.98 9.98 0 1.95.56 3.77 1.5 5.3L2 22l4.85-1.52c1.47.88 3.19 1.39 5.04 1.39 5.51 0 9.99-4.47 9.99-9.98s-4.48-9.98-9.99-9.98zm0 18c-1.58 0-3.07-.4-4.36-1.11l-.31-.18-3.18 1 .84-3.11-.2-.33c-.76-1.22-1.18-2.67-1.18-4.17 0-4.43 3.6-8.03 8.04-8.03s8.04 3.6 8.04 8.03-3.6 8.03-8.04 8.03zm4.4-6.02c-.24-.12-1.42-.71-1.64-.78-.22-.08-.38-.12-.54.12-.16.24-.62.79-.76.95-.14.16-.28.18-.52.06-.24-.12-1.02-.38-1.94-1.2-.72-.64-1.2-1.43-1.34-1.67-.14-.24-.02-.38.1-.5.1-.1.24-.28.36-.42.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.12-.54-1.3-.74-1.78-.19-.47-.38-.4-.54-.41-.14 0-.3 0-.46 0-.16 0-.42.06-.64.3-.22.24-.84.82-.84 2s.86 2.32.98 2.48c.12.16 1.68 2.58 4.08 3.56.57.24 1.02.38 1.37.49.57.18 1.09.16 1.5.09.46-.07 1.42-.58 1.62-1.14.2-.56.2-1.04.14-1.14-.06-.1-.22-.16-.46-.28z" />
+              </svg>
+            </div>
+          </div>
         </a>
       </div>
       <p class="fine-print">© <span id="year"></span> Bogeeswar Ballam. Built with a live GitHub feed via the GitHub
@@ -1083,7 +1535,7 @@
         easing: 'easeOutExpo',
         delay: anime.stagger(150)
       });
-      
+
       anime({
         targets: '.hero-image',
         translateX: [50, 0],
@@ -1103,7 +1555,7 @@
         entries.forEach(entry => {
           if (entry.isIntersecting) {
             const el = entry.target;
-            
+
             if (el.classList.contains('skill-card')) {
               anime({
                 targets: el,
@@ -1130,7 +1582,7 @@
                 delay: anime.stagger(100)
               });
             }
-            
+
             obs.unobserve(el);
           }
         });
@@ -1139,7 +1591,7 @@
       // Hide elements initially and observe them
       document.querySelectorAll('.skill-card, .project, section').forEach(el => {
         if (el.classList.contains('hero')) return;
-        
+
         if (el.classList.contains('skill-card') || el.classList.contains('project')) {
           el.style.opacity = '0';
           scrollObserver.observe(el);
@@ -1149,6 +1601,204 @@
           scrollObserver.observe(el);
         }
       });
+
+      // Mouse glow effect for whole page
+      const pageGlow = document.querySelector('.page-glow');
+      document.addEventListener('mousemove', (e) => {
+        pageGlow.style.opacity = '1';
+        pageGlow.style.setProperty('--mouse-x', `${e.clientX}px`);
+        pageGlow.style.setProperty('--mouse-y', `${e.clientY}px`);
+      });
+      document.addEventListener('mouseleave', () => {
+        pageGlow.style.opacity = '0';
+      });
+
+      // Spotlight Navbar Logic
+      const nav = document.getElementById('main-nav');
+      if (nav) {
+        const spotlightHover = nav.querySelector('.spotlight-hover');
+        const navItems = nav.querySelectorAll('.nav-item');
+        let activeIndex = 0;
+        let spotlightX = 0;
+        let ambienceX = 0;
+
+        const updateAmbience = () => {
+          const activeItem = navItems[activeIndex];
+          if (activeItem && window.innerWidth > 720) {
+            const navRect = nav.getBoundingClientRect();
+            const itemRect = activeItem.getBoundingClientRect();
+            const targetX = itemRect.left - navRect.left + (itemRect.width / 2);
+
+            anime({
+              targets: { x: ambienceX },
+              x: targetX,
+              duration: 600,
+              easing: 'spring(1, 80, 10, 0)',
+              update: function (anim) {
+                ambienceX = anim.animations[0].currentValue;
+                nav.style.setProperty('--ambience-x', `${ambienceX}px`);
+              }
+            });
+          }
+        };
+
+        // Initialize
+        setTimeout(updateAmbience, 100);
+
+        nav.addEventListener('mousemove', (e) => {
+          if (window.innerWidth <= 720) return;
+          const rect = nav.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          spotlightX = x;
+          nav.style.setProperty('--spotlight-x', `${x}px`);
+          spotlightHover.style.opacity = '1';
+        });
+
+        nav.addEventListener('mouseleave', () => {
+          if (window.innerWidth <= 720) return;
+          spotlightHover.style.opacity = '0';
+
+          const activeItem = navItems[activeIndex];
+          if (activeItem) {
+            const navRect = nav.getBoundingClientRect();
+            const itemRect = activeItem.getBoundingClientRect();
+            const targetX = itemRect.left - navRect.left + (itemRect.width / 2);
+
+            anime({
+              targets: { x: spotlightX },
+              x: targetX,
+              duration: 600,
+              easing: 'spring(1, 80, 10, 0)',
+              update: function (anim) {
+                spotlightX = anim.animations[0].currentValue;
+                nav.style.setProperty('--spotlight-x', `${spotlightX}px`);
+              }
+            });
+          }
+        });
+
+        navItems.forEach((item, index) => {
+          item.addEventListener('click', () => {
+            navItems.forEach(i => i.classList.remove('active'));
+            item.classList.add('active');
+            activeIndex = index;
+            updateAmbience();
+            // Close mobile menu
+            if (window.innerWidth <= 720) {
+              nav.classList.remove('open');
+            }
+          });
+        });
+
+        window.addEventListener('resize', () => {
+          updateAmbience();
+        });
+      }
+
+      // ---------- BACKGROUND BEAMS WITH COLLISION ----------
+      (function initBeams() {
+        const container = document.createElement('div');
+        container.className = 'beams-container';
+        document.body.prepend(container);
+
+        const style = document.createElement('style');
+        style.textContent = `
+          .beams-container {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            overflow: hidden;
+            pointer-events: none;
+          }
+          .beam {
+            position: absolute;
+            top: -200px;
+            width: 2px;
+            height: 150px;
+            background: linear-gradient(to bottom, rgba(255,255,255,0), var(--cyan) 50%, var(--purple) 100%);
+            box-shadow: 0 0 15px var(--cyan);
+            opacity: 0;
+          }
+          .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+          }
+        `;
+        document.head.appendChild(style);
+
+        function createBeam() {
+          if (document.visibilityState === 'hidden') return;
+
+          const beam = document.createElement('div');
+          beam.className = 'beam';
+          const startX = Math.random() * window.innerWidth;
+          beam.style.left = `${startX}px`;
+          container.appendChild(beam);
+
+          const collisionY = window.innerHeight * (0.4 + Math.random() * 0.6);
+          const state = { y: 0, opacity: 0 };
+
+          anime({
+            targets: state,
+            y: collisionY + 200,
+            opacity: [
+              { value: 1, duration: 300 },
+              { value: 1, duration: 2000 }
+            ],
+            duration: 1500 + Math.random() * 1000,
+            easing: 'linear',
+            update: function () {
+              if (!beam.parentNode) return;
+              beam.style.transform = `translateY(${state.y}px)`;
+              beam.style.opacity = state.opacity;
+
+              if (state.y >= collisionY && !beam.exploded) {
+                beam.exploded = true;
+                createExplosion(startX, collisionY);
+                beam.remove();
+              }
+            },
+            complete: function () {
+              if (beam.parentNode) beam.remove();
+            }
+          });
+        }
+
+        function createExplosion(x, y) {
+          const particles = [];
+          const count = 12 + Math.floor(Math.random() * 8);
+          for (let i = 0; i < count; i++) {
+            const p = document.createElement('div');
+            p.className = 'particle';
+            p.style.left = `${x}px`;
+            p.style.top = `${y}px`;
+            const isCyan = Math.random() > 0.5;
+            p.style.background = isCyan ? 'var(--cyan)' : 'var(--purple)';
+            p.style.boxShadow = `0 0 10px ${p.style.background}`;
+            container.appendChild(p);
+            particles.push(p);
+          }
+
+          anime({
+            targets: particles,
+            translateX: function () { return anime.random(-100, 100); },
+            translateY: function () { return anime.random(-100, 100); },
+            scale: [1, 0],
+            opacity: [1, 0],
+            duration: 800 + Math.random() * 600,
+            easing: 'easeOutExpo',
+            complete: function () {
+              particles.forEach(p => p.remove());
+            }
+          });
+        }
+
+        for (let i = 0; i < 3; i++) setTimeout(createBeam, i * 400);
+        setInterval(createBeam, 1200);
+      })();
+
     });
   </script>
 </body>
