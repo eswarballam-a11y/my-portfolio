@@ -20,7 +20,7 @@
       --surface-2: #172033;
       --border: #334155;
       --cyan: #06B6D4;
-      --purple: #8B5CF6;
+      --purple: #A78BFA; /* Adjusted for WCAG AA contrast against background */
       --text: #F8FAFC;
       --muted: #94A3B8;
       --mono: 'JetBrains Mono', monospace;
@@ -65,7 +65,10 @@
 
     /* focus visibility */
     a:focus-visible,
-    button:focus-visible {
+    button:focus-visible,
+    input:focus-visible,
+    textarea:focus-visible,
+    select:focus-visible {
       outline: 2px solid var(--cyan);
       outline-offset: 3px;
       border-radius: 4px;
@@ -794,6 +797,62 @@
       color: var(--text);
     }
 
+    /* ---------- CONTACT FORM ---------- */
+    .contact-form-section {
+      padding: 80px 0;
+    }
+
+    .form-container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 40px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .form-group {
+      margin-bottom: 24px;
+    }
+
+    .form-group label {
+      display: block;
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .form-control {
+      width: 100%;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 16px;
+      color: var(--text);
+      font-family: var(--body);
+      font-size: 1rem;
+      transition: border-color .2s ease, box-shadow .2s ease;
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.15);
+    }
+
+    textarea.form-control {
+      resize: vertical;
+      min-height: 120px;
+    }
+
+    .form-submit {
+      width: 100%;
+      margin-top: 10px;
+      justify-content: center;
+    }
+
     /* ---------- CONTACT / FOOTER ---------- */
     footer.contact {
       padding: 80px 0 60px;
@@ -968,6 +1027,12 @@
       opacity: 0;
       background: radial-gradient(800px circle at var(--mouse-x, 0px) var(--mouse-y, 0px), rgba(6, 182, 212, 0.15), transparent 100%);
       transition: opacity 0.5s ease;
+    }
+    
+    @media (hover: none) and (pointer: coarse) {
+      .page-glow {
+        display: none !important;
+      }
     }
 
     /* ---------- SOCIAL FLIP BUTTONS ---------- */
@@ -1233,7 +1298,7 @@
           </div>
         </div>
         <div class="hero-image">
-          <img src="assets/profile_pic.jpg" alt="Bogeeswar Ballam" />
+          <img src="assets/profile_pic.jpg" alt="Portrait of Bogeeswar Ballam" />
         </div>
       </div>
     </section>
@@ -1419,8 +1484,40 @@
     </section>
   </main>
 
-  <!-- CONTACT -->
-  <footer class="contact" id="contact">
+  <!-- CONTACT SECTION -->
+  <section id="contact" class="contact-form-section">
+    <div class="wrap">
+      <div class="section-head" style="text-align: center; margin-bottom: 48px;">
+        <span class="kicker" style="display: block; text-align: center; margin-bottom: 12px;">Get in touch</span>
+        <h2 class="section-title">Contact Me</h2>
+      </div>
+
+      <div class="form-container">
+        <form action="#" method="POST"
+          onsubmit="event.preventDefault(); alert('Thanks for reaching out! I will get back to you soon.');">
+          <div class="form-group">
+            <label for="name">Name</label>
+            <input type="text" id="name" name="name" class="form-control" required placeholder="John Doe">
+          </div>
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" class="form-control" required placeholder="john@example.com">
+          </div>
+          <div class="form-group">
+            <label for="message">Message</label>
+            <textarea id="message" name="message" class="form-control" required
+              placeholder="Hello, I'd like to work with you..."></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary form-submit">
+            <span class="btn-text">Send Message</span>
+          </button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="contact">
     <div class="wrap">
       <h2 class="contact-head">Ready to build intelligent, scalable software together?</h2>
       <p class="contact-sub">
@@ -1625,7 +1722,7 @@
               });
             } else if (el.tagName.toLowerCase() === 'section' && el.id !== 'hero') {
               anime({
-                targets: el.querySelectorAll('.section-head, .edu-card, .contact-head, .contact-sub, .contact-links'),
+                targets: el.querySelectorAll('.section-head, .edu-card, .contact-head, .contact-sub, .contact-links, .form-container'),
                 translateY: [30, 0],
                 opacity: [0, 1],
                 duration: 800,
@@ -1647,7 +1744,7 @@
           el.style.opacity = '0';
           scrollObserver.observe(el);
         } else if (el.tagName.toLowerCase() === 'section') {
-          const children = el.querySelectorAll('.section-head, .edu-card, .contact-head, .contact-sub, .contact-links');
+          const children = el.querySelectorAll('.section-head, .edu-card, .contact-head, .contact-sub, .contact-links, .form-container');
           children.forEach(c => c.style.opacity = '0');
           scrollObserver.observe(el);
         }
