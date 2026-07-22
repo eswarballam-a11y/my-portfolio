@@ -1686,7 +1686,22 @@
         if (cachedData) {
           renderRepos(JSON.parse(cachedData));
         } else {
-          feedEl.innerHTML = `<div class="feed-note">$ couldn't reach the GitHub API right now (rate limit or network). <a class="repo-name" href="https://github.com/${GITHUB_USERNAME}" target="_blank" rel="noopener">View the profile directly →</a></div>`;
+          // Fallback static data if rate-limited and no cache
+          const fallbackRepos = [
+            {
+              html_url: "https://github.com/eswarballam-a11y/cloud-removal-gan",
+              name: "cloud-removal-gan",
+              description: "A Generative Adversarial Network for removing clouds from satellite imagery.",
+              updated_at: new Date().toISOString()
+            },
+            {
+              html_url: "https://github.com/eswarballam-a11y/my-portfolio",
+              name: "my-portfolio",
+              description: "My personal portfolio website.",
+              updated_at: new Date().toISOString()
+            }
+          ];
+          renderRepos(fallbackRepos);
         }
       }
     }
