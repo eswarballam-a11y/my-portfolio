@@ -1643,28 +1643,51 @@
       return years + (years === 1 ? ' year ago' : ' years ago');
     }
 
+    function renderRepos(repos) {
+      if (!Array.isArray(repos) || repos.length === 0) {
+        feedEl.innerHTML = '<div class="feed-note">No public repositories found yet.</div>';
+        return;
+      }
+
+      feedEl.innerHTML = repos.map(repo => `
+      <div class="repo-row">
+        <div>
+          <a class="repo-name" href="${repo.html_url}" target="_blank" rel="noopener">${repo.name}</a>
+          <span class="repo-desc">${repo.description ? repo.description : 'No description provided.'}</span>
+        </div>
+        <div class="repo-meta">updated ${timeAgo(repo.updated_at)}</div>
+      </div>
+    `).join('') + '<div class="feed-note">$ synced directly from api.github.com &mdash; refresh to pull latest.</div>';
+    }
+
     async function loadRepos() {
+      const cacheKey = 'github_repos_cache';
+      const cacheTimeKey = 'github_repos_time';
+      const CACHE_DURATION_MS = 1000 * 60 * 5; // 5 minutes cache
+
+      const cachedData = localStorage.getItem(cacheKey);
+      const cachedTime = localStorage.getItem(cacheTimeKey);
+
+      if (cachedData && cachedTime && (Date.now() - parseInt(cachedTime) < CACHE_DURATION_MS)) {
+        renderRepos(JSON.parse(cachedData));
+        return;
+      }
+
       try {
         const res = await fetch(`https://api.github.com/users/${GITHUB_USERNAME}/repos?sort=updated&per_page=6`);
         if (!res.ok) throw new Error('GitHub API responded with ' + res.status);
         const repos = await res.json();
+        
+        localStorage.setItem(cacheKey, JSON.stringify(repos));
+        localStorage.setItem(cacheTimeKey, Date.now().toString());
 
-        if (!Array.isArray(repos) || repos.length === 0) {
-          feedEl.innerHTML = '<div class="feed-note">No public repositories found yet.</div>';
-          return;
-        }
-
-        feedEl.innerHTML = repos.map(repo => `
-        <div class="repo-row">
-          <div>
-            <a class="repo-name" href="${repo.html_url}" target="_blank" rel="noopener">${repo.name}</a>
-            <span class="repo-desc">${repo.description ? repo.description : 'No description provided.'}</span>
-          </div>
-          <div class="repo-meta">updated ${timeAgo(repo.updated_at)}</div>
-        </div>
-      `).join('') + '<div class="feed-note">$ synced directly from api.github.com &mdash; refresh to pull latest.</div>';
+        renderRepos(repos);
       } catch (err) {
-        feedEl.innerHTML = `<div class="feed-note">$ couldn't reach the GitHub API right now (rate limit or network). <a class="repo-name" href="https://github.com/${GITHUB_USERNAME}" target="_blank" rel="noopener">View the profile directly →</a></div>`;
+        if (cachedData) {
+          renderRepos(JSON.parse(cachedData));
+        } else {
+          feedEl.innerHTML = `<div class="feed-note">$ couldn't reach the GitHub API right now (rate limit or network). <a class="repo-name" href="https://github.com/${GITHUB_USERNAME}" target="_blank" rel="noopener">View the profile directly →</a></div>`;
+        }
       }
     }
 
